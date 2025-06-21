@@ -23,7 +23,9 @@ const newHarvestState = (creep) => {
   }
 
   const source = creep.pos.findClosestByPath(FIND_SOURCES);
-  return { action: "harvest", sourceId: source.id };
+  if (source != null) {
+    return { action: "harvest", sourceId: source.id };
+  }
 };
 
 /**

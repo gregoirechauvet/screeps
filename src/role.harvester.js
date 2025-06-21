@@ -12,7 +12,9 @@ const utils = require("utils");
  */
 function newHarvestState(creep) {
   const source = creep.pos.findClosestByRange(FIND_SOURCES);
-  return { action: "harvest", sourceId: source.id };
+  if (source != null) {
+    return { action: "harvest", sourceId: source.id };
+  }
 }
 
 const actions = {

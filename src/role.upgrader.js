@@ -11,7 +11,9 @@ const newHarvestState = (creep) => {
   }
 
   const source = creep.pos.findClosestByPath(FIND_SOURCES);
-  return { action: "harvest", sourceId: source.id };
+  if (source != null) {
+    return { action: "harvest", sourceId: source.id };
+  }
 };
 
 const actions = {
@@ -32,6 +34,10 @@ const actions = {
 
     if (creep.store.getFreeCapacity() === 0) {
       return { action: "upgrade" };
+    }
+
+    if (container.store.getUsedCapacity() === 0) {
+      return newHarvestState(creep);
     }
   },
   upgrade(creep, state) {
