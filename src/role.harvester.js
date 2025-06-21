@@ -1,14 +1,33 @@
 const utils = require("utils");
 
+/**
+ * @typedef {{ action: "harvest", sourceId: Id<Source> }} HarvestState
+ * @typedef {{ action: "unload" }} UnloadState
+ * @typedef { HarvestState | UnloadState} HarvesterState
+ */
+
+/**
+ * @param {Creep} creep
+ * @returns {HarvesterState}
+ */
 function newHarvestState(creep) {
   const source = creep.pos.findClosestByRange(FIND_SOURCES);
   return { action: "harvest", sourceId: source.id };
 }
 
 const actions = {
+  /**
+   * @param {Creep} creep
+   * @returns {HarvesterState}
+   */
   default(creep) {
     return newHarvestState(creep);
   },
+  /**
+   * @param {Creep} creep
+   * @param {HarvestState} state
+   * @returns {HarvesterState?}
+   */
   harvest(creep, state) {
     const source = Game.getObjectById(state.sourceId);
     utils.doOrMove(creep, source, (c) => c.harvest(source));
@@ -17,6 +36,11 @@ const actions = {
       return { action: "unload" };
     }
   },
+  /**
+   * @param {Creep} creep
+   * @param {UnloadState} state
+   * @returns {HarvesterState?}
+   */
   unload(creep, state) {
     const priorityTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
       filter: (structure) => {
@@ -50,6 +74,10 @@ const actions = {
 };
 
 module.exports = {
+  /**
+   * @param {StructureSpawn} spawnStructure
+   * @returns {bool}
+   */
   spawn(spawnStructure) {
     const count = Memory.harvesterCount != null ? Memory.harvesterCount : 0;
 
@@ -67,8 +95,9 @@ module.exports = {
     return ok;
   },
 
-  /** @param {Creep} creep **/
+  /** @param {Creep} creep */
   run(creep) {
+    /** @type {HarvesterState} */
     const state = creep.memory.state || actions.default(creep);
 
     const actionFn = actions[state.action];

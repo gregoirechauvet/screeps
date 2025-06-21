@@ -1,6 +1,17 @@
 const utils = require("utils");
 
-/** @param {Creep} creep **/
+/**
+ * @typedef {{ action: "harvest", sourceId: Id<Source> }} HarvestState
+ * @typedef {{ action: "withdraw", containerId: Id<StructureContainer> }} WithdrawState
+ * @typedef {{ action: "build", constructionId: Id<ConstructionSite> }} BuildState
+ * @typedef {{ action: "unload", structureId: Id<Structure> }} RepairState
+ * @typedef { HarvestState | WithdrawState | RepairState} BuilderState
+ */
+
+/**
+ * @param {Creep} creep
+ * @returns {BuilderState}
+ */
 const newHarvestState = (creep) => {
   const container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
     filter: (structure) =>
@@ -14,7 +25,10 @@ const newHarvestState = (creep) => {
   return { action: "harvest", sourceId: source.id };
 };
 
-/** @param {Creep} creep **/
+/**
+ * @param {Creep} creep
+ * @returns {BuilderState}
+ */
 const newBuildState = (creep) => {
   const constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
   constructionSites.sort((a, b) => b.progress - a.progress);
@@ -32,7 +46,10 @@ const newBuildState = (creep) => {
   return { action: "repair", structureId: structuresForRepair[0].id };
 };
 
-/** @param {Creep} creep **/
+/**
+ * @param {Creep} creep
+ * @param {Id<ConstructionSite>} constructionId
+ */
 function build(creep, constructionId) {
   const constructionSite = Game.getObjectById(constructionId);
   if (constructionSite == null) {
@@ -44,9 +61,18 @@ function build(creep, constructionId) {
 }
 
 const actions = {
-  default(creep, state) {
+  /**
+   * @param {Creep} creep
+   * @return {BuilderState}
+   */
+  default(creep) {
     return newHarvestState(creep);
   },
+  /**
+   * @param {Creep} creep
+   * @param {HarvestState} state
+   * @return {BuilderState?}
+   */
   harvest(creep, state) {
     const source = Game.getObjectById(state.sourceId);
     utils.doOrMove(creep, source, (creep) => creep.harvest(source));
@@ -55,6 +81,11 @@ const actions = {
       return newBuildState(creep);
     }
   },
+  /**
+   * @param {Creep} creep
+   * @param {WithdrawState} state
+   * @return {BuilderState?}
+   */
   withdraw(creep, state) {
     const container = Game.getObjectById(state.containerId);
     utils.doOrMove(creep, container, (creep) => creep.withdraw(container, RESOURCE_ENERGY));
@@ -63,19 +94,29 @@ const actions = {
       return newBuildState(creep);
     }
   },
+  /**
+   * @param {Creep} creep
+   * @param {RepairState} state
+   * @return {BuilderState?}
+   */
   repair(creep, state) {
     const structure = Game.getObjectById(state.structureId);
     utils.doOrMove(creep, structure, (creep) => creep.repair(structure));
 
-    if (creep.store.getUsedCapacity() === 0) {
+    if (creep.store.getUsedCapacity() === 0 || structure.hits === structure.hitsMax) {
       return (creep.memory.state = newHarvestState(creep));
     }
   },
+  /**
+   * @param {Creep} creep
+   * @param {BuildState} state
+   * @return {BuilderState?}
+   */
   build(creep, state) {
     build(creep, state.constructionId);
 
     if (creep.store.getUsedCapacity() === 0) {
-      return (creep.memory.state = newHarvestState(creep));
+      return newHarvestState(creep);
     }
   },
   changeRoom(creep, state) {
@@ -91,6 +132,10 @@ const actions = {
 };
 
 module.exports = {
+  /**
+   * @param {StructureSpawn} spawnStructure
+   * @returns {bool}
+   */
   spawn(spawnStructure, initialState) {
     const count = Memory.builderCount != null ? Memory.builderCount : 0;
 
@@ -111,7 +156,7 @@ module.exports = {
     const mark = bodyOptions.length - index;
     const bodyParts = bodyOptions[index];
 
-    const resp = Game.spawns.Spawn.spawnCreep(bodyParts, `Builder ${count} - MK${mark}`, {
+    const resp = spawnStructure.spawnCreep(bodyParts, `Builder ${count} - MK${mark}`, {
       memory: { role: "builder", mark, state: initialState },
     });
     if (resp === OK) {
@@ -120,11 +165,12 @@ module.exports = {
     return resp;
   },
 
-  /** @param {Creep} creep **/
+  /** @param {Creep} creep */
   run(creep) {
-    const { state } = creep.memory;
+    /** @type {BuilderState} */
+    const state = creep.memory.state || actions.default(state);
 
-    const actionFn = state != null ? actions[state.action] : actions.default;
+    const actionFn = actions[state.action];
     if (actionFn === undefined) {
       throw Error(`Unknown action ${state.action}`);
     }
