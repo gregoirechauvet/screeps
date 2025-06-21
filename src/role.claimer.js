@@ -10,10 +10,14 @@ const actions = {
     if (creep.room.name === state.roomName) {
       return { action: "claim", roomName: state.roomName };
     }
+
+    return state;
   },
   claim(creep, state) {
     const controller = creep.room.roomController;
-    utils.doOrMove(creep, controller, (c) => c.claim(controller));
+    utils.doOrMove(creep, controller, (c) => c.claimController(controller));
+
+    return state;
   },
 };
 
@@ -25,7 +29,7 @@ module.exports = {
     const resp = spawnStructure.spawnCreep(bodyParts, `Claimer ${count} - MK${mark}`, {
       memory: { role: "claimer", mark },
     });
-    console.log(resp);
+
     const ok = resp === OK;
     if (ok) {
       Memory.claimerCount = count + 1;
@@ -35,7 +39,7 @@ module.exports = {
 
   /** @param {Creep} creep **/
   run(creep) {
-    const { state } = creep.memory;
+    const state = creep.memory.state || { action: "changeRoom", roomName: "W6N8" };
 
     const actionFn = state != null ? actions[state.action] : actions.default;
     if (actionFn === undefined) {

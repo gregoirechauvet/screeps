@@ -106,14 +106,15 @@ function spawn() {
     }
   }
 
-  // const claimerCount = Object.values(creepCountByRoomAndRoles).reduce(acc => acc + acc.claimer || 0, 0)
+  const claimerCount = Object.values(creepCountByRoomAndRoles).reduce((acc, room) => acc + (room.claimer || 0), 0);
+
   // const roomsToClaim = ["W6N8"];
   // if (roomsToClaim.length > 0 && claimerCount === 0) {
-  //     console.log("Attemping claimer spawn")
-  //     const ok = claimer.spawn(Game.spawns.Spawn);
-  //     if (ok) {
-  //         console.log("Builder spawning")
-  //     }
-  //     return;
+  //   console.log("Attemping claimer spawn");
+  //   const ok = claimer.spawn(Game.spawns.Spawn, { action: "changeRoom", roomName: roomsToClaim[0] });
+  //   if (ok) {
+  //     console.log("Builder spawning");
+  //   }
+  //   return;
   // }
 }
