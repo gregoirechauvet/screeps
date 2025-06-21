@@ -81,7 +81,7 @@ module.exports = {
   spawn(spawnStructure) {
     const count = Memory.harvesterCount != null ? Memory.harvesterCount : 0;
 
-    const energyCapacity = spawnStructure.room.energyCapacityAvailable;
+    const energyCapacity = spawnStructure.room.energyAvailable;
     const [bodyParts, mark] =
       energyCapacity >= 500 ? [[CARRY, MOVE, MOVE, MOVE, WORK, WORK, WORK], 2] : [[CARRY, WORK, MOVE], 1];
 

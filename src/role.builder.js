@@ -5,7 +5,8 @@ const utils = require("utils");
  * @typedef {{ action: "withdraw", containerId: Id<StructureContainer> }} WithdrawState
  * @typedef {{ action: "build", constructionId: Id<ConstructionSite> }} BuildState
  * @typedef {{ action: "unload", structureId: Id<Structure> }} RepairState
- * @typedef { HarvestState | WithdrawState | RepairState} BuilderState
+ * @typedef {{ action: "standby" }} StandbyState
+ * @typedef { HarvestState | WithdrawState | RepairState | StandbyState } BuilderState
  */
 
 /**
@@ -126,7 +127,27 @@ const actions = {
       return newHarvestState(creep);
     }
   },
+  /**
+   * @param {Creep} creep
+   * @param {StandbyState} state
+   * @return {BuilderState?}
+   */
   standby(creep, state) {
+    const roadStructuresBelow = creep.room.find(FIND_STRUCTURES, {
+      filter: (structure) =>
+        structure.structureType === STRUCTURE_ROAD &&
+        structure.pos.x === creep.pos.x &&
+        structure.pos.y === creep.pos.y,
+    });
+
+    const isSteppingOnRoad = roadStructuresBelow.length > 0;
+    if (isSteppingOnRoad) {
+      /** @type {DirectionConstant[]} */
+      const allDirections = [TOP_LEFT, TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT];
+      const randomDirection = allDirections[Math.floor(Math.random() * allDirections.length)];
+      creep.move(randomDirection);
+    }
+
     return newBuildState(creep);
   },
 };
