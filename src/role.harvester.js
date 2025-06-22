@@ -1,9 +1,10 @@
-const utils = require("utils");
+const utils = require("./utils");
 
 /**
  * @typedef {{ action: "harvest", sourceId: Id<Source> }} HarvestState
  * @typedef {{ action: "unload" }} UnloadState
- * @typedef { HarvestState | UnloadState} HarvesterState
+ * @typedef {{ action: "standby" }} StandbyState
+ * @typedef { HarvestState | UnloadState | StandbyState} HarvesterState
  */
 
 /**
@@ -15,6 +16,8 @@ function newHarvestState(creep) {
   if (source != null) {
     return { action: "harvest", sourceId: source.id };
   }
+
+  return { action: "standby" };
 }
 
 const actions = {
@@ -28,7 +31,7 @@ const actions = {
   /**
    * @param {Creep} creep
    * @param {HarvestState} state
-   * @returns {HarvesterState?}
+   * @returns {HarvesterState | undefined}
    */
   harvest(creep, state) {
     const source = Game.getObjectById(state.sourceId);
@@ -41,7 +44,7 @@ const actions = {
   /**
    * @param {Creep} creep
    * @param {UnloadState} state
-   * @returns {HarvesterState?}
+   * @returns {HarvesterState | undefined}
    */
   unload(creep, state) {
     const priorityTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
@@ -73,12 +76,20 @@ const actions = {
       return newHarvestState(creep);
     }
   },
+  /**
+   * @param {Creep} creep
+   * @param {StandbyState} state
+   * @returns {HarvesterState | undefined}
+   */
+  standby(creep, state) {
+    return newHarvestState(creep);
+  },
 };
 
 module.exports = {
   /**
    * @param {StructureSpawn} spawnStructure
-   * @returns {bool}
+   * @returns {boolean}
    */
   spawn(spawnStructure) {
     const count = Memory.harvesterCount != null ? Memory.harvesterCount : 0;

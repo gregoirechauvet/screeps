@@ -1,12 +1,12 @@
-const utils = require("utils");
+const utils = require("./utils");
 
 /**
  * @typedef {{ action: "harvest", sourceId: Id<Source> }} HarvestState
  * @typedef {{ action: "withdraw", containerId: Id<StructureContainer> }} WithdrawState
  * @typedef {{ action: "build", constructionId: Id<ConstructionSite> }} BuildState
- * @typedef {{ action: "unload", structureId: Id<Structure> }} RepairState
+ * @typedef {{ action: "repair", structureId: Id<Structure> }} RepairState
  * @typedef {{ action: "standby" }} StandbyState
- * @typedef { HarvestState | WithdrawState | RepairState | StandbyState } BuilderState
+ * @typedef { HarvestState | WithdrawState | BuildState | RepairState | StandbyState } BuilderState
  */
 
 /**
@@ -14,6 +14,7 @@ const utils = require("utils");
  * @returns {BuilderState}
  */
 const newHarvestState = (creep) => {
+  /** @type {StructureContainer | null} */
   const container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
     filter: (structure) =>
       structure.structureType === STRUCTURE_CONTAINER && structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0,
@@ -26,11 +27,13 @@ const newHarvestState = (creep) => {
   if (source != null) {
     return { action: "harvest", sourceId: source.id };
   }
+
+  return { action: "standby" };
 };
 
 /**
  * @param {Creep} creep
- * @returns {BuilderState}
+ * @returns {BuilderState | undefined}
  */
 const newBuildState = (creep) => {
   const constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
@@ -74,7 +77,7 @@ const actions = {
   /**
    * @param {Creep} creep
    * @param {HarvestState} state
-   * @return {BuilderState?}
+   * @return {BuilderState | undefined}
    */
   harvest(creep, state) {
     const source = Game.getObjectById(state.sourceId);
@@ -87,7 +90,7 @@ const actions = {
   /**
    * @param {Creep} creep
    * @param {WithdrawState} state
-   * @return {BuilderState?}
+   * @return {BuilderState | undefined}
    */
   withdraw(creep, state) {
     const container = Game.getObjectById(state.containerId);
@@ -100,7 +103,7 @@ const actions = {
   /**
    * @param {Creep} creep
    * @param {RepairState} state
-   * @return {BuilderState?}
+   * @return {BuilderState | undefined}
    */
   repair(creep, state) {
     const structure = Game.getObjectById(state.structureId);
@@ -113,7 +116,7 @@ const actions = {
   /**
    * @param {Creep} creep
    * @param {BuildState} state
-   * @return {BuilderState?}
+   * @return {BuilderState | undefined}
    */
   build(creep, state) {
     build(creep, state.constructionId);

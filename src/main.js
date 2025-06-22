@@ -1,7 +1,7 @@
-const harvester = require("role.harvester");
-const upgrader = require("role.upgrader");
-const builder = require("role.builder");
-const claimer = require("role.claimer");
+const harvester = require("./role.harvester");
+const upgrader = require("./role.upgrader");
+const builder = require("./role.builder");
+const claimer = require("./role.claimer");
 
 module.exports.loop = () => {
   console.log("Game tick");
