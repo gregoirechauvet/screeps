@@ -160,6 +160,8 @@ module.exports = {
    * @returns {bool}
    */
   spawn(spawnStructure, initialState) {
+    // Idea: auto-scale builders based on amount of work and repairs to do.
+
     const count = Memory.builderCount != null ? Memory.builderCount : 0;
 
     const bodyOptions = [
@@ -191,7 +193,7 @@ module.exports = {
   /** @param {Creep} creep */
   run(creep) {
     /** @type {BuilderState} */
-    const state = creep.memory.state || actions.default(state);
+    const state = creep.memory.state || actions.default(creep);
 
     const actionFn = actions[state.action];
     if (actionFn === undefined) {

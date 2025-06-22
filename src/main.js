@@ -47,9 +47,9 @@ function spawn() {
       upgrader: 6,
       builder: 4,
     },
-    W6N8: {
-      builder: 1,
-    },
+    // W6N8: {
+    //   builder: 1,
+    // },
   };
 
   const creepCountByRoomAndRoles = {};
